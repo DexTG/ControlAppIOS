@@ -1,0 +1,19 @@
+name: IFACTracker
+options:
+  deploymentTarget:
+    iOS: "16.0"
+targets:
+  IFACTracker:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+      - path: Resources
+        type: resources
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.example.ifactracker
+      PRODUCT_NAME: IFACTracker
+      SWIFT_VERSION: 5.9
+      INFOPLIST_FILE: ios/Info.plist
+    scheme:
+      testTargets: []
