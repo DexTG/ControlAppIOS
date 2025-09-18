@@ -1,0 +1,55 @@
+name: iOS Simulator Build
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-ios-sim:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: |
+          brew update
+          brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: ios
+        run: xcodegen generate
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build for iOS Simulator (Debug)
+        run: |
+          xcodebuild \
+            -project ios/IFACTracker.xcodeproj \
+            -scheme IFACTracker \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            build | xcbeautify
+        env:
+          NSUnbufferedIO: "YES"
+
+      - name: Locate built app
+        id: locate
+        run: |
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -type d -name "Build" -maxdepth 3 -print0 | xargs -0 -I {} find {} -type d -name "Debug-iphonesimulator" -maxdepth 3 | head -n 1)
+          echo "dir=$APP_PATH" >> $GITHUB_OUTPUT
+
+      - name: Zip app
+        run: |
+          cd "${{ steps.locate.outputs.dir }}"
+          zip -r IFACTracker-Simulator.zip IFACTracker.app
+
+      - name: Upload artifact (Simulator .app)
+        uses: actions/upload-artifact@v4
+        with:
+          name: IFACTracker-Simulator
+          path: ${{ steps.locate.outputs.dir }}/IFACTracker-Simulator.zip
